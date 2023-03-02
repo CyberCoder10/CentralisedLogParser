@@ -34,15 +34,32 @@ const uploadFile = (filePath, fileName) => {
   });
 };
 
-const files = [
-  { name: 'country_1.json', path: './data/country_1.json' },
-  { name: 'cars_1.json', path: './data/cars_1.json' },
-  { name: 'personalities_1.json', path: './data/personalities_1.json' },
-];
+const dataDir = path.join(__dirname, 'data');
+const categories = ['cards', 'countr', 'personalaties'];
 
-files.forEach((file) => {
-  const filePath = path.join(__dirname, file.path);
-  const fileName = `${file.name}_${Date.now()}`;
+// read all the files in the data directory
+fs.readdir(dataDir, (err, files) => {
+  if (err) {
+    console.log(`Error occurred while reading directory: ${dataDir}`, err);
+  } else {
+    files.forEach((dir) => {
+      // check if the directory is one of the categories
+      if (categories.includes(dir)) {
+        const filesPath = path.join(dataDir, dir);
+        fs.readdir(filesPath, (err, files) => {
+          if (err) {
+            console.log(`Error occurred while reading directory: ${filesPath}`, err);
+          } else {
+            files.forEach((file) => {
+              const filePath = path.join(filesPath, file);
+              const fileName = `${dir}_${file}`;
 
-  uploadFile(filePath, fileName);
+              // upload the file to S3
+              uploadFile(filePath, fileName);
+            });
+          }
+        });
+      }
+    });
+  }
 });
